@@ -1,0 +1,404 @@
+Probleme rezolvate - HackerRank BitDefender 2024
+
+1) Ne dorim să implementăm un URL Shortener.
+
+Pe scurt, un URL Shortener asociază unui URL normal, numit in continuare Long URL (de exemplu https://www.youtube.com/watch?v=dQw4w9WgXcQ) un URL mai scurt, numit în continuare Short URL, descris în cele ce urmează.
+
+Un utilizator înregistrează un Long URL și obține un Short URL asociat, pe care îl poate apoi folosi pentru a accesa Long URL-ul original.
+
+În implementarea noastră, Short URL-urile generate vor fi de forma https://ShortURL.ro/<xyzt>, unde xyzt reprezintă fix 4 caractere alfanumerice ([0-9][A-Z][a-z]).
+
+URL Shortenerul nostru va primi pe rând mai multe Long URL-uri. Long URL-ului i i se va asocia al i-lea Short URL posibil în ordine lexicografică.
+
+De exemplu, primului Long URL îi va fi asociat Short URL-ul https://ShortURL.ro/0000, celui de-al 11-lea îi va fi asociat https://ShortURL.ro/000A, iar celui de-al 37-lea Long URL îi va fi asociat https://ShortURL.ro/000a.
+
+URL Shortenerul acceptă 2 tipuri de interogări:
+
+Tipul 1: Generează un Short URL pentru Long URL-ul X.
+Tipul 2: Care este Long URL-ul asociat Short URL-ului Y? Dacă Short URL-ul Y nu este asociat niciunui Long URL, se va afișa nu exista.
+
+
+Sample Input 0
+
+6
+1 https://www.youtube.com/watch?v=dQw4w9WgXcQ
+1 https://www.youtube.com/shorts/7fO6rKYNSR4
+2 https://ShortURL.ro/0000
+2 https://ShortURL.ro/000A
+1 https://vm.tiktok.com/ZGe58P8ym/
+2 https://ShortURL.ro/0002
+Sample Output 0
+
+https://ShortURL.ro/0000
+https://ShortURL.ro/0001
+https://www.youtube.com/watch?v=dQw4w9WgXcQ
+nu exista
+https://ShortURL.ro/0002
+https://vm.tiktok.com/ZGe58P8ym/
+
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+unordered_map<string, string> umap;
+
+string URL_HEADER = "https://ShortURL.ro/";
+
+int v[4];
+
+string url = "0000";
+
+int main()
+{
+    int n;
+    cin >> n;
+    vector<char> ascii;
+    for (char i = '0'; i <= '9'; ++i) {
+        ascii.push_back(i);
+    }
+    for (char i = 'A'; i <= 'Z'; ++i) {
+        ascii.push_back(i);
+    }
+    for (char i = 'a'; i <= 'z'; ++i) {
+        ascii.push_back(i);
+    }
+    int ascii_len = ascii.size();
+    for (int i = 0; i < n; ++i) {
+        int x;
+        string s;
+        cin >> x >> s;
+        if (x == 1) {
+            string new_url = URL_HEADER + url;
+            cout << new_url << "\n";
+            umap.insert(make_pair(new_url, s));
+            for (int j = 3; j >= 0; j--) {
+                v[j]++;
+                if (v[j] == ascii_len) {
+                    v[j] = 0;
+                } else {
+                    break;
+                }
+            }
+            for (int j = 0; j < 4; ++j) {
+                url[j] = ascii[v[j]];
+            }
+        } else {
+            unordered_map<string, string>::iterator itr = umap.find(s);
+            if (itr == umap.end()) {
+                cout << "nu exista\n";
+            } else {
+                cout << itr->second << "\n";
+            }
+        }
+    }
+    return 0;
+}
+
+
+2) Mergând pe coridoarele dintr-o piramidă mayașă, intri într-o camera întunecată și brusc auzi ușa închizându-se în spatele tău. Pe o masă rotundă sunt 5 pahare de aur, fiecare cu câte un bănuț de aur și un scaun în dreptul unuia dintre pahare.
+
+Te așezi pe scaun și deodată o lumină roșie luminează paharul din fața ta, iar 2 lumini aurii lumineaza paharul din stanga și paharul din dreapta. În fața ta se ridică o tabliță de piatră pe care scrie: “Ai căutat nemurirea, iar acum ai găsit-o. Vei afla răspunsul sau vei petrece o eternitate adunând bănuți. După N rotiri, câți bănuți vor fi în fața ta?”.
+
+Rotiri? Nedumerit, iei paharul din fața ta, iar bănuțul dispare din el. După câteva minute de gândire, pui bănuții din paharele din stânga și din dreapta în paharul din fața ta. În mod magic, bănuții apar la loc în cele 2 pahare luminate auriu, iar masa se roteste în sens invers acelor de ceasornic, mutând paharele cu o poziție.
+
+După o zi de încercări, regulile îți sunt clare:
+
+Paharul din fața ta se golește
+Trebuie să muți bănuții din paharele din stânga și din dreapta în paharul din fața ta.
+Paharele din stânga și din dreapta se umplu magic cu cantitatea de bănuți pe care o aveau înainte
+Masa se rotește în sens invers acelor de ceasornic (paharul curent se va muta în dreapta, paharul din stanga va deveni paharul curent etc).
+Pentru a putea să scapi, trebuie să scrii pe tăbliță câți bănuți va avea paharul din fața ta după N pași.
+Tăblița are loc pentru maxim 9 cifre. De aceea, vei scrie rezultatul modulo 999999937.
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+long long mod = 999999937;
+
+long long a[4][4] = {1, 0, 0, 1,
+               1, 0, 0, 0,
+               0, 1, 0, 0,
+               0, 0, 1, 0};
+
+void mulMat(long long mat1[4][4], long long mat2[4][4], long long rslt[4][4])
+{
+    for (long long i = 0; i < 4; i++) {
+        for (long long j = 0; j < 4; j++) {
+            rslt[i][j] = 0;
+
+            for (long long k = 0; k < 4; k++) {
+                rslt[i][j] = (rslt[i][j] + ((mat1[i][k] % mod) * (mat2[k][j] % mod)) % mod) % mod;
+            }
+        }
+    }
+}
+
+long long fast_pow(long long base[4][4], long long exponent) {
+    long long res[4][4] = {1, 0, 0, 0,
+                     0, 1, 0, 0,
+                     0, 0, 1, 0,
+                     0, 0, 0, 1};
+
+    while (exponent > 0) {
+        long long aux[4][4];
+        if (exponent % 2 == 1) {
+            mulMat(res, base, aux);
+            for (long long i = 0; i < 4; i++) {
+                for (long long j = 0; j < 4; j++) {
+                    res[i][j] = aux[i][j];
+                }
+            }
+        }
+        mulMat(base, base, aux);
+        for (long long i = 0; i < 4; i++) {
+            for (long long j = 0; j < 4; j++) {
+                base[i][j] = aux[i][j];
+            }
+        }
+
+        exponent >>= 1;
+    }
+
+    return (((res[0][0] + res[0][1]) % mod + res[0][2]) % mod + res[0][3]) % mod;
+}
+
+int main() {
+    long long n;
+    cin >> n;
+
+    if (n > 4) {
+        cout << fast_pow(a, n - 4);
+    } else {
+        cout << 1;
+    }
+
+    return 0;
+}
+
+
+3) În anul 1932 a avut loc Războiul Emu, un război din Australia, ce a durat o lună, o săptămână și o zi, purtat între soldații armatei australiene și populația de păsări emu. Soldații înarmați cu mitraliere au încercat fără succes să reducă numărul de astfel de păsări din regiune sub pretextul faptului că acestea distrugeau recoltele.
+
+Aproape un secol mai târziu, în urma declasificării unor documente militare secrete s-a aflat cauza eșecului armatei australiene. Aceasta a descoperit că faimoasele păsări foloseau un limbaj codificat pentru a își coordona acțiunile și pentru a îi induce în eroare pe soldați. Ele foloseau o cheie cu care criptau fiecare ciripit (dacă se poate numi așa) prin care comunicau. Această cheie era un string ce era schimbat în fiecare zi, fix la răsăritul soarelui.
+
+În fiecare dimineață, de la sediul central emu, era transmisă cheia în toată țara în următorul format:
+
+
+Scopul era de a ascunde cheia de armata australiană, lucru pe care au și reușit să îl facă. prefix_key reprezintă un prefix al lui key, posibil gol, dar cu siguranță diferit de key.
+
+După aproape 100 de ani, scopul vostru este să găsiți un algoritm care să obțină cheia dintr-un mesaj trimis de la sediul central emu (în caz că emu se hotărăsc să cucerească lumea și nu își schimbă metodele de comunicare).
+
+Dacă există mai multe soluții, se va afișa cea de lungime minimă.
+
+
+exemplu 
+Sample Input 0
+
+abcabca
+Sample Output 0
+
+abc
+Explanation 0
+
+abcabca = abc + abc + a, iar a este un prefix al lui abc.
+
+Sample Input 1
+
+abcabda
+Sample Output 1
+
+-1
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int main() {
+    string key, s, sol;
+    int found = 0;
+
+    cin >> s;
+
+    int n = s.length();
+    for (int prefix_len = 0; prefix_len < n / 2; prefix_len++) {
+        if ((n - prefix_len) % 2 == 1)
+            continue;
+
+        int ok = 1;
+        int half = (n - prefix_len) / 2;
+        key = "";
+        for (int i = 0; i < half; i++) {
+            if (s[i] != s[i + half]) {
+                ok = 0;
+                break;
+            }
+            key += s[i];
+        }
+
+        if (ok == 0)
+            continue;
+
+        if (key.find(s.substr(n - prefix_len, prefix_len)) == 0 && key.length() != prefix_len) {
+            sol = key;
+            found = 1;
+        }
+    }
+
+    if (found == 0)
+        cout << -1;
+    else
+        cout << sol;
+}
+
+
+4) La școala de vrăjitorie, Gandalf si Merlin se află în competiție pentru cine ar putea să formeze cele mai bune poțiuni din ingredientele pe care le dețin. Au observat că au același număr de ingrediente și au decis să combine câte două ingrediente din propria colecție pentru a forma câte o poțiune.
+
+Colecția de ingrediente a fost bine pusă la punct prin setarea eficienței fiecarui ingredient. Ca să determine eficiența unei poțiuni create, au stabilit că reprezintă suma eficiențelor ambelor ingrediente.
+
+Fiecare are la dispoziție  ingrediente și știu eficiența acestora,  (corespunzătoare lui Gandalf), respectiv  (corespunzătoare lui Merlin).
+
+O combinație de poțiuni  are eficiența  dacă sunt ale lui Gandalf, respectiv  dacă sunt ale lui Merlin.
+
+Astfel, scorul se calculează în felul următor:
+
+Pentru fiecare doi indecși  ():
+
+Gandalf câștigă un punct dacă 
+Merlin câștigă un punct dacă 
+La egalitate, nimeni nu câștigă niciun punct.
+Gandalf a fost un membru al școlii în trecut, iar profesorul său ar dori să știe câte combinări au fost mai bune decât cele ale lui Merlin.
+
+Deoarece răspunsul poate fi foarte mare, se dorește afișarea sa modulo .
+
+Input Format
+
+Citirea se va face de la stdin.
+
+Prima linie conține un număr întreg : numărul de ingrediente ale fiecăruia.
+
+A doua linie conține  întregi : eficiența fiecărui ingredient al lui Gandalf.
+
+A treia linie conține  întregi : eficiența fiecărui ingredient al lui Merlin.
+
+Constraints
+
+Limită de timp:
+C/C++: 2 secunde
+Java: 4 secunde
+Python: 10 secunde
+Limită de memorie: 512MB
+Notă: Dacă folosiți recursivitate în Python, adăugați următoarele linii:
+
+import sys
+sys.setrecursionlimit(1000000)
+Output Format
+
+Afișarea se va face la stdout.
+
+Se va afișa pe prima linie numărul de poțiuni câștigătoare ale lui Gandalf modulo .
+
+Sample Input 0
+
+3
+5 1 4
+2 4 6
+Sample Output 0
+
+1
+Explanation 0
+
+Cei doi au câte 3 ingrediente. Pot forma 3 poțiuni, având combinările .
+
+Poțiunile vor avea combinările de eficiență:
+
+Gandalf: (5, 1), (1, 4), (5, 4). Merlin: (2, 4), (4, 6), (2, 6).
+
+La prima comparație, este egalitate.
+
+La a doua comparație, Merlin este câștigător.
+
+La a treia comparație, Gandalf este câștigător.
+
+Gandalf a câștigat doar o dată, deci se va afișa .
+
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+int mod = 1e9 + 7;
+
+int next(vector<long long> arr, int target, int start, int end)
+{
+    int ans = -1;
+    while (start <= end)
+    {
+        int mid = (start + end) / 2;
+ 
+        if (arr[mid] <= target)
+            start = mid + 1;
+ 
+        else
+        {
+            ans = mid;
+            end = mid - 1;
+        }
+    }
+ 
+    return ans;
+}
+
+long long CountPairs(vector<long long> arr, int n)
+{
+
+    sort(arr.begin(), arr.end());
+
+    long long count = 0;
+
+    long long l = 0, r = n - 1;
+
+    while (l < r) {
+
+        if (arr[l] + arr[r] > 0) {
+            count += (r - l);
+            r--;
+        }
+        else {
+            l++;
+        }
+    }
+    return count;
+}
+
+int main() {
+
+    int n;
+
+    cin >> n;
+
+    vector<long long> g(n), m(n), sum(n, 0);
+
+    for (int i = 0; i < n; i++) {
+        cin >> g[i];
+    }
+
+    for (int i = 0; i < n; i++) {
+        cin >> m[i];
+        sum[i] = g[i] - m[i];
+    }
+
+    // sort(sum.begin(), sum.end());
+
+    // for (int i = 0; i < n - 1; i++) {
+    //     int x = next(sum, -sum[i], i + 1, n);
+    //     if (x != -1)
+    //         g_cnt += n - x;
+    // }
+
+
+
+    cout << CountPairs(sum, n) % mod;
+}
